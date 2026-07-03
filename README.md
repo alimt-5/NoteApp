@@ -74,4 +74,10 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`).
 5. Open a Pull Request.
 
+## 📬 Contact
+
+**Developer**: [alimt-5](https://github.com/alimt-5)
+
 ---
+
+*Made with ❤️ using Jetpack Compose*
