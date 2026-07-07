@@ -45,12 +45,14 @@ fun AddNoteScreen(
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
             navHost.popBackStack()
+            onEvent(NotesEvents.ClearSearch)
             onEvent(NotesEvents.ClearError)
         }
     }
 
     BackHandler(enabled = true) {
         if (state.noteTitle.isBlank() && state.noteDescription.isBlank()) {
+            onEvent(NotesEvents.ClearSearch)
             navHost.popBackStack()
         } else {
             onEvent(NotesEvents.SaveNote(state.noteTitle, state.noteDescription))

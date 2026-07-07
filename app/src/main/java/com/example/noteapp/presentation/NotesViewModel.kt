@@ -22,48 +22,63 @@ class NotesViewModel @Inject constructor(
     private val noteDao: NoteDao
 ) : ViewModel() {
 
-    //Sorting state – changing this triggers a new database query
     private val sortOrder = MutableStateFlow(true)
 
-    //User input fields – changing these does NOT trigger any database query
     private val titleInput = MutableStateFlow("")
     private val descriptionInput = MutableStateFlow("")
 
-    // The note currently being edited. If null, we are in "create new note" mode.
-    private var editingNote: Note? = null
-
-    // Flow to hold validation errors or any error messages to show in the UI.
-    // Setting this value will update the state and trigger a Toast in the UI.
     private val errorFlow = MutableStateFlow<String?>(null)
 
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess.asStateFlow()
 
-    // Database data flow – only re-executes when sortOrder changes
-    // flatMapLatest automatically cancels the previous flow to avoid redundant queries
-    private val notesFlow = sortOrder.flatMapLatest {
-        if (it) {
-            noteDao.getNoteOrderByDateAdded()
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val isSearchActive = MutableStateFlow(false)
+
+    private var editingNote: Note? = null
+
+    private val notesFlow = combine(
+        sortOrder,
+        _searchQuery,
+        isSearchActive
+    ) { isSortedByDate, query, isActive ->
+        Triple(isSortedByDate, query, isActive)
+    }.flatMapLatest { (isSortedByDate, query, isActive) ->
+        if (isActive && query.isNotBlank()) {
+            if (isSortedByDate) noteDao.searchNotesByDateAdded(query)
+            else noteDao.searchNotesByTitle(query)
         } else {
-            noteDao.getNoteOrderByTitle()
+            if (isSortedByDate) noteDao.getNoteOrderByDateAdded()
+            else noteDao.getNoteOrderByTitle()
         }
     }
 
-    //Combine all flows into a single UI state
-    //Any change in notes, title, description, or sort order will update the UI
-    val state = combine(
-        notesFlow,
-        titleInput,
-        descriptionInput,
-        sortOrder,
-        errorFlow
-    ) { notes, title, desc, sort, error ->
+    val state: StateFlow<NotesState> = combine(
+        listOf(
+            notesFlow,
+            titleInput,
+            descriptionInput,
+            sortOrder,
+            errorFlow,
+            isSearchActive
+        )
+    ) { values ->
+        val notes = values[0] as List<Note>
+        val title = values[1] as String
+        val desc = values[2] as String
+        val sort = values[3] as Boolean
+        val error = values[4] as String?
+        val isActive = values[5] as Boolean
+
         NotesState(
             noteList = notes,
             noteTitle = title,
             noteDescription = desc,
             isSortedByDateAdded = sort,
-            error = error
+            error = error,
+            isSearchActive = isActive
         )
     }.stateIn(
         scope = viewModelScope,
@@ -71,74 +86,74 @@ class NotesViewModel @Inject constructor(
         initialValue = NotesState()
     )
 
-    //Handle all user events
-    fun onEvent(events: NotesEvents) {
-        when (events) {
-            is NotesEvents.DeleteNote -> {
-                viewModelScope.launch {
-                    noteDao.deleteNote(events.note)
-                }
-            }
+    fun onEvent(event: NotesEvents) {
+        when (event) {
 
-            NotesEvents.NoteSort -> {
-                sortOrder.value = !sortOrder.value
-            }
+            is NotesEvents.UpdateTitle -> titleInput.value = event.title
 
-            is NotesEvents.UpdateDescription -> {
-                descriptionInput.value = events.description
-            }
+            is NotesEvents.UpdateDescription -> descriptionInput.value = event.description
 
-            is NotesEvents.UpdateTitle -> {
-                titleInput.value = events.title
+            NotesEvents.NoteSort -> sortOrder.value = !sortOrder.value
+
+            is NotesEvents.DeleteNote -> viewModelScope.launch { noteDao.deleteNote(event.note) }
+
+            NotesEvents.DeleteAllNotes -> viewModelScope.launch { noteDao.deleteAllNotes() }
+
+            is NotesEvents.EditNote -> {
+                editingNote = event.note
+                titleInput.value = event.note.title
+                descriptionInput.value = event.note.description
             }
 
             is NotesEvents.SaveNote -> {
-                if (events.title.isBlank()) {
-                    errorFlow.value = "Title can not be empty"
+                if (event.title.isBlank() || event.description.isBlank()) {
+                    errorFlow.value = "The title and description cannot be empty"
                     _saveSuccess.value = false
                     return
                 }
                 val note = if (editingNote != null) {
                     editingNote!!.copy(
-                        title = events.title,
-                        description = events.description
+                        title = event.title,
+                        description = event.description
                     )
                 } else {
                     Note(
-                        title = events.title,
-                        description = events.description,
+                        title = event.title,
+                        description = event.description,
                         dateAdded = System.currentTimeMillis()
                     )
                 }
-
                 viewModelScope.launch {
                     noteDao.upsertNote(note)
-                    errorFlow.value = null
                     editingNote = null
                     titleInput.value = ""
                     descriptionInput.value = ""
-                    _saveSuccess.value =true
+                    errorFlow.value = null
+                    _saveSuccess.value = true
                 }
             }
 
-            is NotesEvents.EditNote -> {
-                editingNote = events.note
-                titleInput.value = events.note.title
-                descriptionInput.value = events.note.description
-                _saveSuccess.value =false
+            is NotesEvents.UpdateSearchQuery -> {
+                _searchQuery.value = event.query
+            }
+
+            NotesEvents.ToggleSearch -> {
+                val newState = !isSearchActive.value
+                isSearchActive.value = newState
+                if (!newState) _searchQuery.value = ""
+            }
+
+            NotesEvents.ClearSearch -> {
+                isSearchActive.value = false
+                _searchQuery.value = ""
+                errorFlow.value = null
+                _saveSuccess.value = false
             }
 
             NotesEvents.ClearError -> {
                 errorFlow.value = null
                 _saveSuccess.value = false
             }
-            NotesEvents.DeleteAllNotes -> {
-                viewModelScope.launch {
-                    noteDao.deleteAllNotes()
-                }
-            }
         }
     }
-
 }
-

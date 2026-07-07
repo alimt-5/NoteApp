@@ -35,7 +35,7 @@ fun NoteItems(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(12.dp)
             .clickable {

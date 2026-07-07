@@ -23,4 +23,20 @@ interface NoteDao {
     @Query("DELETE FROM note")
     suspend fun deleteAllNotes()
 
+    @Query("""
+        SELECT * FROM note 
+        WHERE lower(title) LIKE '%' || lower(:query) || '%' 
+           OR description LIKE '%' || :query || '%'
+        ORDER BY dateAdded
+    """)
+    fun searchNotesByDateAdded(query: String): Flow<List<Note>>
+
+    @Query("""
+        SELECT * FROM note 
+        WHERE lower(title) LIKE '%' || lower(:query) || '%' 
+           OR description LIKE '%' || :query || '%'
+        ORDER BY title ASC
+    """)
+    fun searchNotesByTitle(query: String): Flow<List<Note>>
+
 }

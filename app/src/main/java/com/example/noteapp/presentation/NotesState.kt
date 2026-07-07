@@ -8,5 +8,6 @@ data class NotesState(
     val noteTitle: String = "",
     val noteDescription: String = "",
     val isSortedByDateAdded: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val isSearchActive: Boolean = false
 )
