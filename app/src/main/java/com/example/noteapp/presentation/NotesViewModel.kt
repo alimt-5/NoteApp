@@ -1,5 +1,6 @@
 package com.example.noteapp.presentation
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteapp.data.Note
@@ -153,6 +154,24 @@ class NotesViewModel @Inject constructor(
             NotesEvents.ClearError -> {
                 errorFlow.value = null
                 _saveSuccess.value = false
+            }
+        }
+    }
+
+    fun handleIncomingIntent(intent: Intent?) {
+        intent?.let {
+            if (Intent.ACTION_SEND == it.action && it.type == "text/plain") {
+                val sharedText = it.getStringExtra(Intent.EXTRA_TEXT)
+                if (!sharedText.isNullOrBlank()) {
+                    viewModelScope.launch {
+                        onEvent(
+                            NotesEvents.SaveNote(
+                                title = "New Note",
+                                description = sharedText
+                            )
+                        )
+                    }
+                }
             }
         }
     }
