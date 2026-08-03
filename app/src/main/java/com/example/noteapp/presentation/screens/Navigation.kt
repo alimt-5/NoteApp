@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.noteapp.presentation.NotesViewModel
+import com.example.noteapp.presentation.SplashScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
@@ -17,7 +18,13 @@ fun Navigation(viewModel: NotesViewModel = hiltViewModel()) {
     val saveSuccess by viewModel.saveSuccess.collectAsState()
     val navHostController = rememberNavController()
 
-    NavHost(navHostController, "NoteScreen") {
+    NavHost(
+        navController = navHostController,
+        startDestination = "SplashScreen"
+    ) {
+        composable("SplashScreen") {
+            SplashScreen(navController = navHostController)
+        }
         composable("NoteScreen") {
             NoteScreen(
                 viewModel = viewModel,
