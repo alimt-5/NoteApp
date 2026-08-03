@@ -29,7 +29,7 @@ import com.example.noteapp.presentation.NotesEvents
 import com.example.noteapp.presentation.NotesState
 
 @Composable
-fun NoteItems(
+fun NoteItem(
     state: NotesState,
     index: Int,
     onEvent: (NotesEvents) -> Unit,

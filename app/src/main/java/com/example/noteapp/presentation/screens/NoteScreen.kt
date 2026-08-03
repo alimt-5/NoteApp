@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
@@ -198,7 +197,7 @@ fun NoteScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    painter = painterResource(R.drawable.sharp_add_notes_24),
                     contentDescription = "AddNote",
                     modifier = Modifier.size(35.dp),
                     tint = MaterialTheme.colorScheme.onPrimary
@@ -214,7 +213,7 @@ fun NoteScreen(
             verticalArrangement = Arrangement.Top
         ) {
             items(state.noteList.size) { index ->
-                NoteItems(
+                NoteItem(
                     state = state,
                     index = index,
                     onEvent = onEvent,
