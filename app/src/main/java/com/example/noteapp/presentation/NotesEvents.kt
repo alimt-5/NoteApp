@@ -15,4 +15,5 @@ sealed interface NotesEvents {
     data object ToggleSearch : NotesEvents
     data class UpdateSearchQuery(val query: String) : NotesEvents
     data object ClearSearch : NotesEvents
+    data object SpeakNote : NotesEvents
 }

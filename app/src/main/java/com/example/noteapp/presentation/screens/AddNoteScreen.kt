@@ -2,12 +2,14 @@ package com.example.noteapp.presentation.screens
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -15,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -62,22 +65,27 @@ fun AddNoteScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                onClick = {
-                    onEvent(
-                        NotesEvents.SaveNote(
-                            state.noteTitle,
-                            state.noteDescription
-                        )
-                    )
-                }) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "SavingNote",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+            Column (
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = { onEvent(NotesEvents.SpeakNote) },
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                ) {
+                    Icon(Icons.TwoTone.PlayArrow,contentDescription = "Listen")
+                }
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    onClick = {
+                        onEvent(NotesEvents.SaveNote(state.noteTitle, state.noteDescription))
+                    }
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = "Save")
+                }
             }
         }
     ) { paddingValues ->

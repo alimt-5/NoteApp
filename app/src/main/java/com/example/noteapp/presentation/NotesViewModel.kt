@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteapp.data.Note
 import com.example.noteapp.data.NoteDao
+import com.example.noteapp.utils.TtsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 @HiltViewModel
 class NotesViewModel @Inject constructor(
-    private val noteDao: NoteDao
+    private val noteDao: NoteDao,
+    private val ttsManager: TtsManager
 ) : ViewModel() {
 
     private val sortOrder = MutableStateFlow(true)
@@ -155,6 +157,13 @@ class NotesViewModel @Inject constructor(
                 errorFlow.value = null
                 _saveSuccess.value = false
             }
+
+            NotesEvents.SpeakNote -> {
+                val fullText = "${titleInput.value}\n${descriptionInput.value}".trim()
+                if (fullText.isNotEmpty()) {
+                    ttsManager.speak(fullText)
+                }
+            }
         }
     }
 
@@ -174,5 +183,9 @@ class NotesViewModel @Inject constructor(
                 }
             }
         }
+    }
+    override fun onCleared() {
+        super.onCleared()
+        ttsManager.shutdown()
     }
 }
