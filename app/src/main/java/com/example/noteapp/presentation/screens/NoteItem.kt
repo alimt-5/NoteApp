@@ -3,6 +3,7 @@ package com.example.noteapp.presentation.screens
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.noteapp.presentation.NotesEvents
@@ -38,62 +40,64 @@ fun NoteItem(
     val note = state.noteList[index]
     val context = LocalContext.current
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(25.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { onItemClick() }
             .padding(12.dp)
-            .clickable {
-                onItemClick()
-            }
     ) {
-        Column(
-            modifier = Modifier.weight(1f)
+        Text(
+            text = state.noteList[index].title,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 2
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = state.noteList[index].description,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            maxLines = 6,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text(
-                text = state.noteList[index].title,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                maxLines = 1
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = state.noteList[index].description,
-                fontWeight = FontWeight.Light,
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                maxLines = 1,
-            )
-        }
-        IconButton(onClick = {
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "${note.title}\n\n${note.description}"
+            IconButton(onClick = {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "${note.title}\n\n${note.description}"
+                    )
+                }
+                context.startActivity(shareIntent)
+
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-            context.startActivity(shareIntent)
-
-        }) {
-            Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = "Share",
-                modifier = Modifier.size(35.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-        IconButton(onClick = {
-            onEvent(NotesEvents.DeleteNote(state.noteList[index]))
-        }) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "DeletingNote",
-                modifier = Modifier.size(35.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
+            IconButton(onClick = {
+                onEvent(NotesEvents.DeleteNote(state.noteList[index]))
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "DeletingNote",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

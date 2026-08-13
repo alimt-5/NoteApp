@@ -3,6 +3,7 @@ package com.example.noteapp.presentation.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -170,7 +174,7 @@ fun NoteScreen(
 
                     IconButton(
                         onClick = {
-                            if (state.noteList.isNotEmpty()) {
+                            if (state.noteList.size > 1) {
                                 onEvent(NotesEvents.NoteSort)
                             }
                         },
@@ -205,14 +209,22 @@ fun NoteScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues,
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.Top
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = 8.dp,
+                end = 8.dp,
+                top = 8.dp,
+                bottom = 96.dp
+            ),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalItemSpacing = 8.dp
         ) {
-            items(state.noteList.size) { index ->
+            itemsIndexed(items = state.noteList, key = { _, note -> note.id }
+            ) { index, _ ->
                 NoteItem(
                     state = state,
                     index = index,
@@ -222,7 +234,6 @@ fun NoteScreen(
                         navHost.navigate("AddNoteScreen")
                     }
                 )
-                Spacer(Modifier.height(8.dp))
             }
         }
 
